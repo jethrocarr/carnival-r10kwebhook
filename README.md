@@ -24,8 +24,14 @@ a change is pushed to the Github repository.
   configuration significantly, since it does not require a webhook to be added
   for each and every environment.
 
+* Written in Python 2.7 and using Boto3 for optimal compatibility with AWS
+  Lambda and popular GNU/Linux distributions.
+
 
 # Webhook Lambda
+
+The webhook Lambda listens to webhooks from GitHub and turns them into messages
+on an SNS topic.
 
 ## Deployment
 
@@ -87,3 +93,61 @@ TODO: Review and implement unit testing for webhook.
 
 
 # r10k Event Agent (Consumer)
+
+The consumer subscribes to the SNS topic and listens for event messages. When
+one arrives, it parses the data and if the module is present in r10k, it checks
+out the new version.
+
+## Deployment
+
+The consumer can be installed onto a systemd-enabled Linux system with:
+
+    apt-get install python-boto3
+    cp r10k-webhook-consumer.py /usr/local/bin/r10k-webhook-consumer
+    cp r10k-webhook-consumer.service /etc/systemd/system/
+    systemctl daemon-reload
+    systemctl enable r10k-webhook-consumer
+    systemctl restart r10k-webhook-consumer
+
+You may wish to change some of the default configuration, which can be done by
+adjusting the environmentals inside the r10k-webhook-consumer.service file.
+
+| Env Key          | Value                         | Details                                                      |
+|------------------|-------------------------------|--------------------------------------------------------------|
+| PYTHONUNBUFFERED | true                          | Ensures logging works in real-time when running as a daemon. |
+| SNSTOPIC         | r10k-webhook-staging          | Name of the SNS topic to subscribe to.                       |
+| SQSQUEUE         | r10k-webhook-staging-hostname | Name of the SQS queue to use. Self-generates unique names.   |
+| AWS_REGION       | us-east-1                     | AWS region                                                   |
+
+
+The server must have the following IAM role configured:
+
+    {
+    "Version": "2012-10-17",
+    "Statement": [ {
+        "Action": [
+          "SNS:Subscribe"
+        ],
+        "Resource": "arn:aws:sns:us-east-1:123456:r10k-webhook-*",
+        "Effect": "Allow"
+      },
+      {
+        "Action": [
+          "SQS:CreateQueue",
+          "SQS:ReceiveMessage",
+          "SQS:DeleteMessage",
+          "SQS:GetQueueAttributes",
+          "SQS:SetQueueAttributes",
+          "SQS:AddPermission"
+        ],
+        "Resource": "arn:aws:sqs:us-east-1:123456:r10k-webhook-*",
+        "Effect": "Allow"
+      } ]
+    }
+
+
+## Testing
+
+The easiest way to test is to copy the consumer to a server and execute the
+command with enviromentals. Make sure the server IAM roles have been
+setup as per above information.

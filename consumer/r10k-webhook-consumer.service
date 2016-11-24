@@ -1,0 +1,14 @@
+# Unit file for the r10k webhook consumer.
+
+[Unit]
+Description=Consumer for r10k repo change events.
+
+[Service]
+Type=simple
+Environment=PYTHONUNBUFFERED=true
+ExecStart=/usr/local/bin/r10k-webhook-consumer
+RestartSec=5
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

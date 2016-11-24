@@ -43,9 +43,12 @@ Change `ENVIRONMENT` to suit, generally most sites will have a `staging` and
 that this is *not* the same as Puppet environments, a single Lambda can handle
 events for all Puppet environments.
 
+The SNS topic used by the Lambda is automatically created in the same region as
+the Lambda itself. The topic name is `r10k-webhook-$stage`.
 
 
-## GitHub configuration
+
+## GitHub Configuration
 
 When adding the webhook to Github, you should set the following fields:
 
@@ -59,9 +62,11 @@ When adding the webhook to Github, you should set the following fields:
 | Active       | true                                                       |
 
 
-## Test examples:
+## Testing
 
-    ENDPOINT=https://flgf56ktic.execute-api.us-east-1.amazonaws.com/staging/
+The following two examples simulate testing a ping and a push event:
+
+    ENDPOINT=<as returned by `serverless info`>
 
     curl -i \
     -X POST \
@@ -72,5 +77,13 @@ When adding the webhook to Github, you should set the following fields:
     -X POST \
     -H "X-GitHub-Event: push" \
     --data '{"repository": {"name": "test-repo", "url": "git://example-url/test-repo"}, "pusher": {"email": "example@example.com"} }' $ENDPOINT
+
+GitHub makes testing very easy as well. Once a webhook is configured on a
+project, you can view and debug the communications to/from the webhook by
+clicking on the webhook entry in the web interface. This interface also permits
+redelivery for testing purposes.
+
+TODO: Review and implement unit testing for webhook.
+
 
 # r10k Event Agent (Consumer)

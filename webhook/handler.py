@@ -5,6 +5,8 @@
 #
 
 import json
+import os
+import boto3
 
 def webhook(event, context):
 
@@ -12,6 +14,7 @@ def webhook(event, context):
 
     if event['headers']['X-GitHub-Event']:
         # Post is a github event. We only care about certain types of these.
+        print "Recieved event from Github"
 
         if event['headers']['X-GitHub-Event'] == 'ping':
             body = '{"status": "success", "message": "Ping OK"}'
@@ -26,6 +29,7 @@ def webhook(event, context):
             # in r10k, this webhook is secure to have public - any attempts to
             # have us pull other modules will just get discarded.
 
+            print "Event type is a push event."
             github_event = json.loads(event['body'])
 
             push_event = {
@@ -34,8 +38,36 @@ def webhook(event, context):
                 'user': github_event['pusher']['email']
             }
 
-            body = '{"status": "success", "message": "Recieved webhook from Github for repository '+ push_event['repo_name'] +' by user '+ push_event['user'] +'}'
-            statuscode = 200
+            # Connect to the SNS topic. We know the topic lives in our region
+            # and account, but we need to get the name of this lambda and the
+            # stage from Environments which has been loaded in by Serverless.
+            print "Connecting to SNS and sending event details..."
+
+            print "Using SNS topic: " + os.environ['SNSTOPIC']
+
+            try:
+                client = boto3.client('sns')
+                snstopic = client.create_topic(
+                    Name=os.environ['SNSTOPIC']
+                )
+
+                message = client.publish(
+                    TopicArn=snstopic['TopicArn'],
+                    Message=json.dumps(push_event)
+                )
+
+                print "Pushed message ID: " + message['MessageId']
+
+
+                # Return OK to Github
+                body = '{"status": "success", "message": "Recieved webhook from Github for repository '+ push_event['repo_name'] +' by user '+ push_event['user'] +'}'
+                statuscode = 200
+
+            except Exception as e:
+                print e
+                body = '{"status": "failed", "message": "Unable to deliver webhook event to SNS."}'
+                statuscode = 500
+
         else:
             body = '{"status": "success", "message": "Ignored unsupported webhook event type: ' + event['headers']['X-GitHub-Event'] + '"}'
             statuscode = 200

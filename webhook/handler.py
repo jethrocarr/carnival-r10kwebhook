@@ -32,6 +32,8 @@ def webhook(event, context):
             print "Event type is a push event."
             github_event = json.loads(event['body'])
 
+            # Warning: This push event data is unfiltered, so it must be
+            # properly validated if it's used in a shell CLI or inside a DB.
             push_event = {
                 'repo_name': github_event['repository']['name'],
                 'repo_url': github_event['repository']['url'],

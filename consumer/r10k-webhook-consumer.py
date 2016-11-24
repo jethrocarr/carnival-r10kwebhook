@@ -91,6 +91,8 @@ while (True):
         for message in message_response['Messages']:
             print "Recieved message ID: "+ message["MessageId"]
 
+            # Warning: This message data must be validated when consumed, since
+            # we can't trust the legitimacy of the information.
             message_body = json.loads(message['Body'])
             push_event = json.loads(message_body['Message'])
             print push_event
@@ -112,10 +114,15 @@ while (True):
                 print "Performing FULL/HEAVY r10k run for environment module update..."
                 os.system("r10k deploy environment -p --verbose info")
             else:
-                # Perform module-specific run. Note that we get no information
-                # from r10k on whether or not this actually works :-/
-                print "Performing SINGLE MODULE r10k run..."
-                os.system("r10k deploy module "+ module_name +" --verbose info")
+                # Ensure the module name is a word and not some nasty shell
+                # injection :-)
+                if re.search(r"^[A-Za-z0-9]*$", module_name):
+                    # Perform module-specific run. Note that we get no information
+                    # from r10k on whether or not this actually works :-/
+                    print "Performing SINGLE MODULE r10k run..."
+                    os.system("r10k deploy module "+ module_name +" --verbose info")
+                else:
+                    print "Invalid module name, unable to process: " + module_name
 
             # Delete the message after successful processing.
             client_sqs.delete_message(

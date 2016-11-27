@@ -3,7 +3,7 @@
 This repository provides a webhook for triggers r10k updates on servers when
 a change is pushed to the Github repository.
 
-# Features
+## Features
 
 * Provides an AWS Lambda (using Serverless Framework) which collects webhook
   events from Github and turns them into a message that gets pushed to SNS.
@@ -26,6 +26,11 @@ a change is pushed to the Github repository.
 
 * Written in Python 2.7 and using Boto3 for optimal compatibility with AWS
   Lambda and popular GNU/Linux distributions.
+
+
+## High Level Overview
+
+![r10k-webhook-consumer-overview](https://cloud.githubusercontent.com/assets/23325523/20652726/8c4efce0-b563-11e6-9aa9-615bbdc8fc02.png)
 
 
 # Webhook Lambda

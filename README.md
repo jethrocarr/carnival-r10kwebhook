@@ -97,7 +97,7 @@ redelivery for testing purposes.
 TODO: Review and implement unit testing for webhook.
 
 
-# r10k Event Agent (Consumer)
+# Server-Side Consumer
 
 The consumer subscribes to the SNS topic and listens for event messages. When
 one arrives, it parses the data and if the module is present in r10k, it checks
@@ -154,5 +154,27 @@ The server must have the following IAM role configured:
 ## Testing
 
 The easiest way to test is to copy the consumer to a server and execute the
-command with enviromentals. Make sure the server IAM roles have been
+command with environmentals. Make sure the server IAM roles have been
 setup as per above information.
+
+
+# Contributions
+
+All contributions are welcome via Pull Requests including documentation fixes.
+
+
+# License
+
+    Copyright (c) 2016 Sailthru, Inc., https://www.sailthru.com/
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
